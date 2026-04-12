@@ -1,1 +1,16 @@
+rollback:
+  runs-on: ubuntu-latest
+  if: failure()
+  needs: deploy-prod
 
+  steps:
+    - name: Rollback to previous version
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.PROD_EC2_HOST }}
+        username: ${{ secrets.PROD_EC2_USER }}
+        key: ${{ secrets.PROD_EC2_SSH_KEY }}
+        script: |
+          docker stop my-app || true
+          docker rm my-app || true
+          docker run -d -p 5000:5000 --name my-app rishika742/my-app:latest
